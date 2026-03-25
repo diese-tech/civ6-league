@@ -1,0 +1,116 @@
+// prisma/schema.prisma
+// ─── DATABASE SCHEMA ────────────────────────────────────────────────────────
+// Using SQLite for easy local dev. Switch to PostgreSQL for production
+// by changing the provider and DATABASE_URL in .env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"          // Change to "postgresql" for production
+  url      = env("DATABASE_URL")
+}
+
+// ─── PLAYER ─────────────────────────────────────────────────────────────────
+model Player {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  email       String?  @unique
+  password    String?                // Hashed, nullable for Discord-only auth
+  discordId   String?  @unique
+  discordTag  String?
+  avatarUrl   String?
+  eloRating   Int      @default(1000)
+  division    String   @default("Prince")
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  draws       Int      @default(0)
+  streak      Int      @default(0)   // Positive = win streak, negative = loss streak
+  favCiv      String?
+  isAdmin     Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  matchesAsP1 Match[]  @relation("Player1Matches")
+  matchesAsP2 Match[]  @relation("Player2Matches")
+  badges      Badge[]
+
+  @@index([eloRating])
+  @@index([division])
+}
+
+// ─── MATCH ──────────────────────────────────────────────────────────────────
+model Match {
+  id          Int      @id @default(autoincrement())
+  player1Id   Int
+  player2Id   Int
+  player1Civ  String?                // Civ picked by player 1
+  player2Civ  String?                // Civ picked by player 2
+  result      String?                // "1-0", "0-1", "draw", or null if pending
+  map         String   @default("Pangaea")
+  status      String   @default("scheduled") // scheduled, pending, completed, cancelled
+  replayUrl   String?
+  notes       String?
+  seasonId    Int
+  scheduledAt DateTime
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ELO changes recorded after completion
+  player1EloBefore Int?
+  player1EloAfter  Int?
+  player2EloBefore Int?
+  player2EloAfter  Int?
+
+  // Civ bans (stored as comma-separated strings for simplicity)
+  player1Bans String?               // e.g. "Babylon,Korea"
+  player2Bans String?
+
+  // Relations
+  player1     Player   @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2     Player   @relation("Player2Matches", fields: [player2Id], references: [id])
+  season      Season   @relation(fields: [seasonId], references: [id])
+
+  @@index([seasonId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ─── SEASON ─────────────────────────────────────────────────────────────────
+model Season {
+  id        Int      @id @default(autoincrement())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  matches   Match[]
+}
+
+// ─── BADGE / ACHIEVEMENT ────────────────────────────────────────────────────
+model Badge {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  icon        String   @default("🏆")
+  playerId    Int
+  awardedAt   DateTime @default(now())
+
+  player      Player   @relation(fields: [playerId], references: [id])
+
+  @@index([playerId])
+}
+
+// ─── ANNOUNCEMENT ───────────────────────────────────────────────────────────
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
