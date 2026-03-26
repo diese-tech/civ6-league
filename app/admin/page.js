@@ -9,20 +9,23 @@ export default function AdminPage() {
   const [matches, setMatches] = useState([]);
   const [toast, setToast] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
   const [editModal, setEditModal] = useState(null); // { type, item }
   const [editForm, setEditForm] = useState({});
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
 
   const loadData = useCallback(async () => {
-    const [pRes, sRes, mRes] = await Promise.all([
+    const [pRes, sRes, mRes, aRes] = await Promise.all([
       fetch("/api/players").then((r) => r.json()),
       fetch("/api/seasons").then((r) => r.json()),
       fetch("/api/matches?limit=50").then((r) => r.json()),
+      fetch("/api/announcements").then((r) => r.json()),
     ]);
     setPlayers(pRes.players || []);
     setSeasons(sRes.seasons || []);
     setMatches(mRes.matches || []);
+    setAnnouncements(aRes.announcements || []);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -105,9 +108,9 @@ export default function AdminPage() {
       </div>
 
       <div className="flex gap-1 mb-8 flex-wrap">
-        {[["players", "Players"], ["matches", "Matches"], ["seasons", "Seasons"]].map(([k, l]) => (
+        {[["players", "Players"], ["matches", "Matches"], ["seasons", "Seasons"], ["announcements", "News"]].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className={`px-5 py-2.5 font-condensed text-xs font-medium tracking-wider uppercase rounded-md border transition-all ${tab === k ? "text-gold bg-gold/[0.08] border-gold/20" : "text-[var(--text-muted)] border-transparent"}`}>
-            {l} ({k === "players" ? players.length : k === "matches" ? matches.length : seasons.length})
+            {l} ({k === "players" ? players.length : k === "matches" ? matches.length : k === "seasons" ? seasons.length : announcements.length})
           </button>
         ))}
       </div>
@@ -229,7 +232,36 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-
+      {/* ── Announcements ────────────────────────────────── */}
+      {tab === "announcements" && (
+        <div className="fade-in">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 mb-6">
+            <p className="text-sm text-[var(--text-secondary)]">
+              Announcements are posted via the Discord bot using <code className="text-gold">.announce Title | Message</code>. You can delete them here.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {announcements.map((a) => (
+              <div key={a.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    {a.isPinned && <span className="px-2 py-0.5 rounded-full text-[10px] font-condensed font-semibold tracking-wider uppercase bg-gold/15 text-gold border border-gold/25">Pinned</span>}
+                    <span className="font-mono text-[11px] text-[var(--text-muted)]">{new Date(a.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="font-display text-base font-semibold mb-1">{a.title}</div>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{a.content}</p>
+                </div>
+                <button onClick={() => handleDelete("announcement", a.id, a.title)} className={`px-3 py-1 font-condensed text-[11px] tracking-wider uppercase rounded-md transition-all shrink-0 ${confirmDelete === `announcement-${a.id}` ? "bg-[var(--red)] text-white" : "border border-[var(--red)]/30 text-[var(--red)] hover:bg-[var(--red)]/10"}`}>
+                  {confirmDelete === `announcement-${a.id}` ? "Confirm?" : "Delete"}
+                </button>
+              </div>
+            ))}
+            {announcements.length === 0 && (
+              <div className="text-center py-12 text-[var(--text-muted)]">No announcements. Use <code className="text-gold">.announce</code> in Discord to post one.</div>
+            )}
+          </div>
+        </div>
+      )}
       {/* ── Edit Modal ───────────────────────────────────── */}
       {editModal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6" onClick={() => setEditModal(null)}>

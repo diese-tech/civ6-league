@@ -20,6 +20,11 @@ export async function DELETE(request) {
       return NextResponse.json({ success: true });
     }
 
+    if (type === "announcement") {
+      await prisma.announcement.delete({ where: { id } });
+      return NextResponse.json({ success: true });
+    }
+
     if (type === "season") {
       await prisma.match.deleteMany({ where: { seasonId: id } });
       await prisma.season.delete({ where: { id } });
