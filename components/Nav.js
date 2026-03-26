@@ -9,6 +9,9 @@ const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/leaderboard", label: "Rankings" },
   { href: "/matches", label: "Matches" },
+  { href: "/tierlist", label: "Tier List" },
+  { href: "/stats", label: "Stats" },
+  { href: "/blog", label: "Blog" },
   { href: "/league", label: "League" },
   { href: "/rules", label: "Rules" },
 ];
