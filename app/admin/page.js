@@ -2,6 +2,107 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 
+function RulesTab() {
+  const [rules, setRules] = useState([]);
+  const [editRule, setEditRule] = useState(null);
+  const [newForm, setNewForm] = useState({ category: "", title: "", content: "", sortOrder: 0 });
+  const [pw, setPw] = useState("");
+  const [toast2, setToast2] = useState(null);
+
+  const showT = (msg) => { setToast2(msg); setTimeout(() => setToast2(null), 3500); };
+
+  const loadRules = async () => {
+    const res = await fetch("/api/rules");
+    const data = await res.json();
+    setRules(data.rules || []);
+  };
+
+  useEffect(() => { loadRules(); }, []);
+
+  const categories = {};
+  for (const r of rules) { if (!categories[r.category]) categories[r.category] = []; categories[r.category].push(r); }
+
+  const saveRule = async (data) => {
+    const res = await fetch("/api/rules", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, password: pw }) });
+    if (res.ok) { showT("Saved!"); loadRules(); return true; }
+    const d = await res.json(); showT(d.error || "Failed."); return false;
+  };
+
+  const delRule = async (id) => {
+    const res = await fetch("/api/rules", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, password: pw }) });
+    if (res.ok) { showT("Deleted."); loadRules(); } else showT("Failed.");
+  };
+
+  const ic = "w-full px-4 py-2.5 bg-[var(--bg-input)] border border-[var(--border)] rounded-md text-[var(--text-primary)] text-sm outline-none focus:border-gold-dim transition-colors";
+  const lc = "block font-condensed text-[11px] font-semibold tracking-[2px] uppercase text-[var(--text-muted)] mb-1.5";
+
+  return (
+    <div className="fade-in">
+      <div className="bg-[var(--bg-card)] border border-gold-dim rounded-xl p-5 mb-6">
+        <label className={lc}>Admin Password</label>
+        <input type="password" className={ic} placeholder="Required to edit rules" value={pw} onChange={(e) => setPw(e.target.value)} />
+      </div>
+
+      {Object.entries(categories).map(([cat, catRules]) => (
+        <div key={cat} className="mb-6">
+          <h3 className="font-display text-lg text-gold mb-3">{cat}</h3>
+          <div className="space-y-2">
+            {catRules.map((rule) => (
+              <div key={rule.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-4">
+                {editRule?.id === rule.id ? (
+                  <div className="space-y-3">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div><label className={lc}>Category</label><input className={ic} value={editRule.category} onChange={(e) => setEditRule({ ...editRule, category: e.target.value })} /></div>
+                      <div><label className={lc}>Title</label><input className={ic} value={editRule.title} onChange={(e) => setEditRule({ ...editRule, title: e.target.value })} /></div>
+                    </div>
+                    <div><label className={lc}>Content</label><textarea className={`${ic} min-h-[120px] resize-y`} rows={5} value={editRule.content} onChange={(e) => setEditRule({ ...editRule, content: e.target.value })} /></div>
+                    <div className="w-32"><label className={lc}>Sort Order</label><input type="number" className={ic} value={editRule.sortOrder} onChange={(e) => setEditRule({ ...editRule, sortOrder: +e.target.value })} /></div>
+                    <div className="flex gap-2">
+                      <button onClick={async () => { if (await saveRule(editRule)) setEditRule(null); }} className="px-4 py-2 bg-gold text-[var(--bg-primary)] font-condensed text-xs font-semibold tracking-widest uppercase rounded-md">Save</button>
+                      <button onClick={() => setEditRule(null)} className="px-4 py-2 border border-[var(--border-bright)] text-[var(--text-secondary)] font-condensed text-xs tracking-widest uppercase rounded-md">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="font-condensed font-semibold mb-1">{rule.title}</div>
+                      <div className="text-xs text-[var(--text-muted)] line-clamp-2">{rule.content.substring(0, 150)}...</div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => setEditRule({ ...rule })} className="px-3 py-1 border border-[var(--border-bright)] text-[var(--text-secondary)] font-condensed text-[11px] tracking-wider uppercase rounded-md hover:text-[var(--text-primary)]">Edit</button>
+                      <button onClick={() => { if (confirm(`Delete "${rule.title}"?`)) delRule(rule.id); }} className="px-3 py-1 border border-[var(--red)]/30 text-[var(--red)] font-condensed text-[11px] tracking-wider uppercase rounded-md hover:bg-[var(--red)]/10">Delete</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {rules.length === 0 && <div className="text-center py-12 text-[var(--text-muted)]">No rules yet. Add one below.</div>}
+
+      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 mt-6">
+        <h3 className="font-display text-lg text-gold mb-4">Add New Rule</h3>
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className={lc}>Category</label>
+            <input className={ic} placeholder="e.g. In-Game Rules" value={newForm.category} onChange={(e) => setNewForm({ ...newForm, category: e.target.value })} list="admin-cat-suggestions" />
+            <datalist id="admin-cat-suggestions">
+              {Object.keys(categories).map((c) => <option key={c} value={c} />)}
+            </datalist>
+          </div>
+          <div><label className={lc}>Title</label><input className={ic} placeholder="Rule title" value={newForm.title} onChange={(e) => setNewForm({ ...newForm, title: e.target.value })} /></div>
+        </div>
+        <div className="mb-4"><label className={lc}>Content</label><textarea className={`${ic} min-h-[120px] resize-y`} rows={5} placeholder="Rule content..." value={newForm.content} onChange={(e) => setNewForm({ ...newForm, content: e.target.value })} /></div>
+        <button onClick={async () => { if (await saveRule(newForm)) setNewForm({ category: newForm.category, title: "", content: "", sortOrder: newForm.sortOrder + 1 }); }} className="px-5 py-2.5 bg-gold text-[var(--bg-primary)] font-condensed text-xs font-semibold tracking-widest uppercase rounded-md">Add Rule</button>
+      </div>
+
+      {toast2 && <div className="fixed bottom-6 right-6 px-5 py-3 bg-[var(--bg-card)] border border-gold-dim rounded-lg text-sm z-50 shadow-2xl fade-in">{toast2}</div>}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [tab, setTab] = useState("players");
   const [players, setPlayers] = useState([]);
@@ -108,7 +209,7 @@ export default function AdminPage() {
       </div>
 
       <div className="flex gap-1 mb-8 flex-wrap">
-        {[["players", "Players"], ["matches", "Matches"], ["seasons", "Seasons"], ["announcements", "News"]].map(([k, l]) => (
+        {[["players", "Players"], ["matches", "Matches"], ["seasons", "Seasons"], ["announcements", "News"], ["rules", "Rules"]].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} className={`px-5 py-2.5 font-condensed text-xs font-medium tracking-wider uppercase rounded-md border transition-all ${tab === k ? "text-gold bg-gold/[0.08] border-gold/20" : "text-[var(--text-muted)] border-transparent"}`}>
             {l} ({k === "players" ? players.length : k === "matches" ? matches.length : k === "seasons" ? seasons.length : announcements.length})
           </button>
@@ -262,6 +363,9 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      {/* ── Rules ────────────────────────────────────────────── */}
+      {tab === "rules" && <RulesTab />}
+
       {/* ── Edit Modal ───────────────────────────────────── */}
       {editModal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-6" onClick={() => setEditModal(null)}>
