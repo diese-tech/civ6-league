@@ -54,12 +54,6 @@ export default async function HomePage() {
             strategy enthusiasts.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Link
-              href="/join"
-              className="px-7 py-3 bg-gold text-[var(--bg-primary)] font-condensed text-sm font-semibold tracking-widest uppercase rounded-md hover:bg-gold-bright hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(197,164,78,0.3)] transition-all"
-            >
-              ⚔ Join the League
-            </Link>
             <a
               href="https://discord.gg/WtNeHbXbjj"
               target="_blank"

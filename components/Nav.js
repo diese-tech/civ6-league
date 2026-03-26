@@ -101,13 +101,15 @@ export default function Nav() {
               {label}
             </Link>
           ))}
-          <Link
-            href="/join"
-            className="mt-2 px-5 py-2 bg-gold text-[var(--bg-primary)] font-condensed text-sm font-semibold tracking-widest uppercase rounded-md text-center"
+          <a
+            href="https://discord.gg/WtNeHbXbjj"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 px-5 py-2 bg-[#5865F2] text-white font-condensed text-sm font-semibold tracking-widest uppercase rounded-md text-center"
             onClick={() => setOpen(false)}
           >
-            Join League
-          </Link>
+            Discord
+          </a>
         </div>
       )}
     </nav>
