@@ -65,7 +65,7 @@ export default function Nav() {
               </button>
             </div>
           ) : (
-            <Link
+            <a
               href="https://discord.gg/WtNeHbXbjj"
               target="_blank"
               rel="noopener noreferrer"
