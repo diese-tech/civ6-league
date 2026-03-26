@@ -66,11 +66,13 @@ export default function Nav() {
             </div>
           ) : (
             <Link
-              href="/join"
-              className="ml-4 px-5 py-2 bg-gold text-[var(--bg-primary)] font-condensed text-sm font-semibold tracking-widest uppercase rounded-md hover:bg-gold-bright transition-all"
+              href="https://discord.gg/WtNeHbXbjj"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-4 px-5 py-2 bg-[#5865F2] text-white font-condensed text-sm font-semibold tracking-widest uppercase rounded-md hover:bg-[#4752C4] transition-all"
             >
-              Join
-            </Link>
+              Discord
+            </a>
           )}
         </div>
 

@@ -61,11 +61,13 @@ export default async function HomePage() {
               ⚔ Join the League
             </Link>
             <Link
-              href="/leaderboard"
-              className="px-7 py-3 border border-[var(--border-bright)] text-[var(--text-secondary)] font-condensed text-sm font-semibold tracking-widest uppercase rounded-md hover:text-[var(--text-primary)] hover:border-gold-dim transition-all"
+              href="https://discord.gg/WtNeHbXbjj"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-7 py-3 bg-[#5865F2] text-white font-condensed text-sm font-semibold tracking-widest uppercase rounded-md hover:bg-[#4752C4] hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(88,101,242,0.3)] transition-all"
             >
-              View Rankings
-            </Link>
+              💬 Join Our Discord
+            </a>
           </div>
         </div>
       </section>
@@ -337,7 +339,7 @@ export default async function HomePage() {
           </p>
           <a
             href={
-              process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "https://discord.gg/"
+              "https://discord.gg/WtNeHbXbjj"
             }
             target="_blank"
             rel="noopener noreferrer"
