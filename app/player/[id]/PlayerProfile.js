@@ -135,10 +135,11 @@ export default function PlayerProfile({
       </div>
 
       {/* ── Stat Cards ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-9 gap-3 mb-6">
         {[
           { val: totalGames, label: "Games", color: "var(--text-primary)" },
           { val: player.wins, label: "Wins", color: "var(--green)" },
+          { val: player.draws, label: "1st Place", color: "var(--gold)" },
           { val: player.losses, label: "Losses", color: "var(--red)" },
           { val: `${winRate}%`, label: "Win Rate", color: "var(--gold)" },
           { val: currentStreak > 0 ? `W${currentStreak}` : currentStreak < 0 ? `L${Math.abs(currentStreak)}` : "—", label: "Streak", color: currentStreak > 0 ? "var(--green)" : currentStreak < 0 ? "var(--red)" : "var(--text-muted)" },
