@@ -60,7 +60,7 @@ export default async function HomePage() {
             >
               ⚔ Join the League
             </Link>
-            <Link
+            <a
               href="https://discord.gg/WtNeHbXbjj"
               target="_blank"
               rel="noopener noreferrer"
