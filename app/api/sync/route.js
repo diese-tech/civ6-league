@@ -107,6 +107,8 @@ async function handleMatchReport(data) {
         player2EloBefore: Math.round(orderedPlayers[1].ratingBefore || orderedPlayers[1].rating),
         player2EloAfter: Math.round(orderedPlayers[1].rating),
         notes: reportId ? `Report ID: ${reportId}` : null,
+        player1Civ: data.leaderPicks?.[orderedPlayers[0]?.id]?.leader || null,
+        player2Civ: data.leaderPicks?.[orderedPlayers[1]?.id]?.leader || null,
       },
     });
   }
