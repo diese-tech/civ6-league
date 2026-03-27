@@ -246,7 +246,7 @@ export default async function HomePage() {
                   })}
                 </span>
               </div>
-              <Link href="/blog" className="font-display text-base font-semibold mb-2 hover:text-gold transition-colors block">
+              <Link href={`/blog/${a.id}`} className="font-display text-base font-semibold mb-2 hover:text-gold transition-colors block">
                 {a.title}
               </Link>
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed line-clamp-3">
