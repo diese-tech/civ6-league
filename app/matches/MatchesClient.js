@@ -27,7 +27,7 @@ export default function MatchesClient({ matches }) {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 flex-wrap">
-        {[["all", "All"], ["completed", "Completed"], ["scheduled", "Scheduled"], ["pending", "Pending"]].map(([k, l]) => (
+        {[["all", "All"], ["completed", "Completed"]].map(([k, l]) => (
           <button
             key={k}
             onClick={() => setTab(k)}

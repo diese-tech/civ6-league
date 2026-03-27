@@ -9,7 +9,7 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch all data in parallel
-  const [players, activeSeason, recentMatches, upcomingMatches, announcements] =
+  const [players, activeSeason, recentMatches, announcements] =
     await Promise.all([
       prisma.player.findMany({ orderBy: { eloRating: "desc" }, take: 5 }),
       prisma.season.findFirst({ where: { isActive: true } }),
@@ -20,7 +20,6 @@ export default async function HomePage() {
         include: { player1: true, player2: true },
       }),
       prisma.match.findMany({
-        where: { status: "scheduled" },
         orderBy: { scheduledAt: "asc" },
         take: 3,
         include: { player1: true, player2: true },
@@ -216,31 +215,6 @@ export default async function HomePage() {
                   </div>
                 );
               })}
-            </div>
-
-            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6">
-              <h3 className="font-display text-lg text-accent mb-4">
-                Upcoming
-              </h3>
-              {upcomingMatches.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between py-2.5 border-b border-[var(--border)] last:border-b-0 gap-2"
-                >
-                  <span className="font-condensed text-sm flex-1">
-                    {m.player1.username}
-                  </span>
-                  <span className="font-mono text-[11px] text-[var(--text-muted)] px-2">
-                    {new Date(m.scheduledAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span className="font-condensed text-sm flex-1 text-right">
-                    {m.player2.username}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
         </div>
