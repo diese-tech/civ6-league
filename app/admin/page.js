@@ -2,6 +2,69 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 
+function NewSeasonForm({ onCreated, showToast }) {
+  const [form, setForm] = useState({ name: "", startDate: "", endDate: "", isActive: false });
+  const [saving, setSaving] = useState(false);
+
+  const ic = "w-full px-4 py-2.5 bg-[var(--bg-input)] border border-[var(--border)] rounded-md text-[var(--text-primary)] text-sm outline-none focus:border-gold-dim transition-colors";
+  const lc = "block font-condensed text-[11px] font-semibold tracking-[2px] uppercase text-[var(--text-muted)] mb-1.5";
+
+  const handleCreate = async () => {
+    if (!form.name || !form.startDate || !form.endDate) {
+      showToast("Name, start date, and end date required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/seasons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          startDate: new Date(form.startDate).toISOString(),
+          endDate: new Date(form.endDate).toISOString(),
+          isActive: form.isActive,
+        }),
+      });
+      if (res.ok) {
+        showToast("Season created!");
+        setForm({ name: "", startDate: "", endDate: "", isActive: false });
+        onCreated();
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to create season.");
+      }
+    } catch { showToast("Network error."); }
+    setSaving(false);
+  };
+
+  return (
+    <div>
+      <div className="mb-4">
+        <label className={lc}>Season Name</label>
+        <input className={ic} placeholder="e.g. Season 2 — Rise of Empires" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      </div>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className={lc}>Start Date</label>
+          <input type="date" className={ic} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+        </div>
+        <div>
+          <label className={lc}>End Date</label>
+          <input type="date" className={ic} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+        </div>
+      </div>
+      <label className="flex items-center gap-3 mb-6 cursor-pointer">
+        <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="w-4 h-4 accent-[var(--gold)]" />
+        <span className="text-sm text-[var(--text-secondary)]">Set as active season (deactivates other seasons)</span>
+      </label>
+      <button onClick={handleCreate} disabled={saving} className="px-5 py-2.5 bg-gold text-[var(--bg-primary)] font-condensed text-xs font-semibold tracking-widest uppercase rounded-md hover:bg-gold-bright disabled:opacity-50">
+        {saving ? "Creating..." : "Create Season"}
+      </button>
+    </div>
+  );
+}
+
 // ── Rules Management Tab ────────────────────────────────────────────────────
 function RulesTab() {
   const [rules, setRules] = useState([]);
@@ -275,6 +338,11 @@ export default function AdminPage() {
             );
           })}
           {seasons.length === 0 && <div className="text-center py-12 text-[var(--text-muted)]">No seasons.</div>}
+	  {/* Create New Season */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 mt-6">
+            <h3 className="font-display text-lg text-gold mb-4">Create New Season</h3>
+            <NewSeasonForm onCreated={loadData} showToast={showToast} />
+          </div>
         </div>
       )}
 
