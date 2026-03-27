@@ -13,7 +13,10 @@ export default async function HomePage() {
   const [players, activeSeason, recentMatches, announcements] =
     await Promise.all([
       prisma.player.findMany({ orderBy: { eloRating: "desc" }, take: 5 }),
-      prisma.season.findFirst({ where: { isActive: true } }),
+      prisma.season.findFirst({ where: { isActive: true } }).then(async (active) => {
+        if (active) return active;
+        return prisma.season.findFirst({ where: { startDate: { gte: new Date() } }, orderBy: { startDate: "asc" } });
+      }),
       prisma.match.findMany({
         where: { status: "completed" },
         orderBy: { completedAt: "desc" },
@@ -73,9 +76,9 @@ export default async function HomePage() {
           <div className="p-6 rounded-xl border border-gold-dim bg-gradient-to-br from-gold/[0.08] to-accent/[0.04] flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2.5 mb-1">
-                <span className="live-dot" />
-                <span className="font-condensed text-[11px] tracking-[2px] uppercase text-[var(--green)]">
-                  Active Season
+                {activeSeason.isActive && <span className="live-dot" />}
+                <span className={`font-condensed text-[11px] tracking-[2px] uppercase ${activeSeason.isActive ? "text-[var(--green)]" : "text-accent"}`}>
+                  {activeSeason.isActive ? "Active Season" : "Upcoming Season"}
                 </span>
               </div>
               <div className="font-display text-xl font-bold text-gold">
@@ -111,7 +114,7 @@ export default async function HomePage() {
             { val: totalPlayers, label: "Players" },
             { val: totalMatches, label: "Matches Played" },
             { val: DIVISIONS.length, label: "Divisions" },
-            { val: activeSeason ? "Active" : "Off-Season", label: "Status" },
+            { val: activeSeason ? (activeSeason.isActive ? "Active" : "Upcoming") : "Off-Season", label: activeSeason ? activeSeason.name : "Status" },
           ].map(({ val, label }) => (
             <div
               key={label}
