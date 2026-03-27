@@ -76,7 +76,14 @@ export async function PATCH(request) {
       await prisma.match.update({ where: { id }, data: update });
       return NextResponse.json({ success: true });
     }
-
+    if (type === "announcement") {
+      const update = {};
+      if (data.isPinned !== undefined) update.isPinned = data.isPinned;
+      if (data.title !== undefined) update.title = data.title;
+      if (data.content !== undefined) update.content = data.content;
+      await prisma.announcement.update({ where: { id }, data: update });
+      return NextResponse.json({ success: true });
+    }
     return NextResponse.json({ error: "Unknown type" }, { status: 400 });
   } catch (err) {
     console.error("[Admin] Edit error:", err);

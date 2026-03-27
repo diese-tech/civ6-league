@@ -363,7 +363,10 @@ export default function AdminPage() {
                   <div className="font-display text-base font-semibold mb-1">{a.title}</div>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{a.content}</p>
                 </div>
-                <button onClick={() => handleDelete("announcement", a.id, a.title)} className={`px-3 py-1 font-condensed text-[11px] tracking-wider uppercase rounded-md transition-all shrink-0 ${confirmDelete === `announcement-${a.id}` ? "bg-[var(--red)] text-white" : "border border-[var(--red)]/30 text-[var(--red)] hover:bg-[var(--red)]/10"}`}>{confirmDelete === `announcement-${a.id}` ? "Confirm?" : "Delete"}</button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={async () => { const res = await fetch("/api/admin", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "announcement", id: a.id, data: { isPinned: !a.isPinned } }) }); if (res.ok) { showToast(a.isPinned ? "Unpinned." : "Pinned!"); loadData(); } }} className={`px-3 py-1 font-condensed text-[11px] tracking-wider uppercase rounded-md transition-all ${a.isPinned ? "bg-gold/10 text-gold border border-gold/20" : "border border-[var(--border-bright)] text-[var(--text-muted)] hover:text-gold"}`}>{a.isPinned ? "Unpin" : "Pin"}</button>
+                  <button onClick={() => handleDelete("announcement", a.id, a.title)} className={`px-3 py-1 font-condensed text-[11px] tracking-wider uppercase rounded-md transition-all ${confirmDelete === `announcement-${a.id}` ? "bg-[var(--red)] text-white" : "border border-[var(--red)]/30 text-[var(--red)] hover:bg-[var(--red)]/10"}`}>{confirmDelete === `announcement-${a.id}` ? "Confirm?" : "Delete"}</button>
+                </div>
               </div>
             ))}
             {announcements.length === 0 && <div className="text-center py-12 text-[var(--text-muted)]">No announcements.</div>}
