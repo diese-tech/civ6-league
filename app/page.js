@@ -9,6 +9,7 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch all data in parallel
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const [players, activeSeason, recentMatches, announcements] =
     await Promise.all([
       prisma.player.findMany({ orderBy: { eloRating: "desc" }, take: 5 }),
@@ -19,14 +20,15 @@ export default async function HomePage() {
         take: 3,
         include: { player1: true, player2: true },
       }),
-      prisma.match.findMany({
-        orderBy: { scheduledAt: "asc" },
-        take: 3,
-        include: { player1: true, player2: true },
-      }),
       prisma.announcement.findMany({
+        where: {
+          OR: [
+            { isPinned: true },
+            { createdAt: { gte: oneWeekAgo } },
+          ],
+        },
         orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-        take: 4,
+        take: 6,
       }),
     ]);
 
