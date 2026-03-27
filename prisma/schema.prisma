@@ -21,7 +21,7 @@ model Player {
   discordId   String?  @unique
   discordTag  String?
   avatarUrl   String?
-  eloRating   Int      @default(1000)
+  eloRating   Int      @default(1500)
   division    String   @default("Prince")
   wins        Int      @default(0)
   losses      Int      @default(0)
