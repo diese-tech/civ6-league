@@ -124,7 +124,7 @@ export default function TierListClient({ leaders, totalGames }) {
         <div className="space-y-4 fade-in">
           {tiers.map((tierName) => {
             const tierLeaders = grouped[tierName];
-            if (tierLeaders.length === 0) return null;
+            if (tierLeaders.length === 0 && tierName === "Unranked") return null;
             const tierInfo = getTier(tierName === "S" ? 70 : tierName === "A" ? 60 : tierName === "B" ? 50 : tierName === "C" ? 40 : tierName === "D" ? 30 : 0, 5);
             return (
               <div key={tierName} className="flex gap-3 items-start">
