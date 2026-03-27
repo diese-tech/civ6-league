@@ -37,6 +37,7 @@ model Player {
   matchesAsP1 Match[]  @relation("Player1Matches")
   matchesAsP2 Match[]  @relation("Player2Matches")
   badges      Badge[]
+  tierLists   TierList[]
 
   @@index([eloRating])
   @@index([division])
@@ -125,4 +126,30 @@ model Rule {
   updatedAt DateTime @updatedAt
 
   @@index([category])
+}
+model TierList {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  playerId  Int
+  player    Player          @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  title     String          @default("My Tier List")
+  isPublic  Boolean         @default(true)
+  entries   TierListEntry[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([playerId])
+  @@index([slug])
+}
+
+model TierListEntry {
+  id         String   @id @default(cuid())
+  tierListId String
+  tierList   TierList @relation(fields: [tierListId], references: [id], onDelete: Cascade)
+  leaderKey  String
+  tier       String
+  position   Int
+
+  @@unique([tierListId, leaderKey])
+  @@index([tierListId])
 }

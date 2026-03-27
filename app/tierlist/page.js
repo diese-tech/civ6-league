@@ -1,6 +1,7 @@
 // app/tierlist/page.js
 import { prisma } from "@/lib/db";
 import TierListClient from "./TierListClient";
+import Link from "next/link";
 
 export const revalidate = 60;
 export const metadata = { title: "Leader Tier List — Strategy Inc" };
@@ -11,7 +12,6 @@ export default async function TierListPage() {
     select: { player1Civ: true, player2Civ: true, result: true },
   });
 
-  // Aggregate leader stats
   const leaderMap = {};
   for (const m of matches) {
     if (m.player1Civ) {
@@ -38,5 +38,62 @@ export default async function TierListPage() {
     }))
     .sort((a, b) => b.winRate - a.winRate || b.games - a.games);
 
-  return <TierListClient leaders={leaders} totalGames={totalGames} />;
+  // Get community tier lists
+  let communityLists = [];
+  try {
+    communityLists = await prisma.tierList.findMany({
+      where: { isPublic: true },
+      orderBy: { updatedAt: "desc" },
+      take: 10,
+      include: {
+        player: { select: { id: true, username: true } },
+        _count: { select: { entries: true } },
+      },
+    });
+  } catch {}
+
+  const ser = (d) => (d instanceof Date ? d.toISOString() : d);
+
+  return (
+    <div>
+      <TierListClient leaders={leaders} totalGames={totalGames} />
+
+      {/* Community Tier Lists Section */}
+      <section className="max-w-5xl mx-auto px-6 pb-12">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div>
+            <h2 className="font-display text-2xl font-bold">Community Tier Lists</h2>
+            <div className="w-10 h-0.5 bg-gold mt-2" />
+          </div>
+          <Link href="/tierlist/create" className="px-5 py-2 bg-gold text-[var(--bg-primary)] font-condensed text-xs font-semibold tracking-widest uppercase rounded-md hover:bg-gold-bright transition-all">
+            Create Your Own
+          </Link>
+        </div>
+
+        {communityLists.length > 0 ? (
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {communityLists.map((tl) => (
+              <Link key={tl.id} href={`/tierlist/${tl.slug}`} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 hover:border-gold/30 transition-colors">
+                <div className="font-condensed text-base font-semibold mb-1">{tl.title}</div>
+                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                  <span className="font-semibold text-[var(--text-secondary)]">{tl.player.username}</span>
+                  <span>·</span>
+                  <span>{tl._count.entries} leaders</span>
+                  <span>·</span>
+                  <span>{new Date(tl.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-8 text-center">
+            <p className="text-[var(--text-muted)] mb-4">No community tier lists yet. Be the first!</p>
+            <Link href="/tierlist/create" className="px-5 py-2 bg-gold text-[var(--bg-primary)] font-condensed text-xs font-semibold tracking-widest uppercase rounded-md">
+              Create Tier List
+            </Link>
+          </div>
+        )}
+      </section>
+    </div>
+  );
 }
