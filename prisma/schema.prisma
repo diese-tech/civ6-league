@@ -36,6 +36,7 @@ model Player {
   // Relations
   matchesAsP1 Match[]  @relation("Player1Matches")
   matchesAsP2 Match[]  @relation("Player2Matches")
+  matchPlayers MatchPlayer[]
   badges      Badge[]
   tierLists   TierList[]
 
@@ -46,8 +47,8 @@ model Player {
 // ─── MATCH ──────────────────────────────────────────────────────────────────
 model Match {
   id          Int      @id @default(autoincrement())
-  player1Id   Int
-  player2Id   Int
+  player1Id   Int?
+  player2Id   Int?
   player1Civ  String?                // Civ picked by player 1
   player2Civ  String?                // Civ picked by player 2
   result      String?                // "1-0", "0-1", "draw", or null if pending
@@ -71,9 +72,14 @@ model Match {
   player1Bans String?               // e.g. "Babylon,Korea"
   player2Bans String?
 
+  // FFA support
+  reportId    String?  @unique
+  winnerId    Int?
+  players     MatchPlayer[]
+
   // Relations
-  player1     Player   @relation("Player1Matches", fields: [player1Id], references: [id])
-  player2     Player   @relation("Player2Matches", fields: [player2Id], references: [id])
+  player1     Player?  @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2     Player?  @relation("Player2Matches", fields: [player2Id], references: [id])
   season      Season   @relation(fields: [seasonId], references: [id])
 
   @@index([seasonId])
@@ -152,4 +158,26 @@ model TierListEntry {
 
   @@unique([tierListId, leaderKey])
   @@index([tierListId])
+}
+
+// ─── MATCH PLAYER (FFA placement) ───────────────────────────────────────────
+model MatchPlayer {
+  id            Int      @id @default(autoincrement())
+  matchId       Int
+  playerId      Int
+  placement     Int                  // 1 = first place, 2 = second, etc.
+  civ           String?
+  leader        String?
+  ratingBefore  Int?
+  ratingAfter   Int?
+  ratingGain    Int?                 // positive = counted as a "win"
+  createdAt     DateTime @default(now())
+
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player        Player   @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+  @@index([playerId])
+  @@index([placement])
 }

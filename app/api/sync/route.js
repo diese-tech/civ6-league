@@ -40,13 +40,16 @@ export async function POST(request) {
 // ─── MATCH REPORT ───────────────────────────────────────────────────────────
 // Called after every .report in Discord
 async function handleMatchReport(data) {
-  const { reportId, orderedPlayers, winnerId, isCC, players: playerStats } = data;
-  // orderedPlayers: [{id, name, rating, rd, games, wins, cc_wins}, ...]
-  // winnerId: Discord user ID of winner
-  // playerStats: full stats object for all players in the match
+  const { reportId, orderedPlayers, winnerId } = data;
 
   if (!orderedPlayers || !Array.isArray(orderedPlayers) || orderedPlayers.length < 2) {
     return NextResponse.json({ error: "Invalid match data" }, { status: 400 });
+  }
+
+  // Filter out players with 0 games (guard, bot also filters)
+  const validPlayers = orderedPlayers.filter((p) => (p.games ?? 0) > 0);
+  if (validPlayers.length < 2) {
+    return NextResponse.json({ error: "Not enough valid players" }, { status: 400 });
   }
 
   // Ensure active season exists
@@ -56,16 +59,30 @@ async function handleMatchReport(data) {
       data: {
         name: "Season 1",
         startDate: new Date(),
-        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // +90 days
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         isActive: true,
       },
     });
   }
 
+  // Idempotency: if this reportId already exists, skip
+  if (reportId) {
+    const existing = await prisma.match.findUnique({ where: { reportId } });
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        message: `Match ${reportId} already synced`,
+        skipped: true,
+      });
+    }
+  }
+
   // Upsert all players in the match
-  for (const p of orderedPlayers) {
+  const playerRecords = {};
+  for (const p of validPlayers) {
     const division = getDivision(p.rating);
-    await prisma.player.upsert({
+    const firstPlaceCount = p.first_place ?? p.firstPlace ?? 0;
+    const updated = await prisma.player.upsert({
       where: { discordId: p.id },
       update: {
         username: p.name,
@@ -73,7 +90,7 @@ async function handleMatchReport(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-        draws: p.first_place ?? p.firstPlace ?? 0,
+        draws: firstPlaceCount,
         favCiv: p.favCiv || null,
       },
       create: {
@@ -83,50 +100,58 @@ async function handleMatchReport(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-        draws: p.first_place ?? p.firstPlace ?? 0,
+        draws: firstPlaceCount,
         favCiv: p.favCiv || null,
       },
     });
+    playerRecords[p.id] = updated;
   }
 
-  // Get player DB records for match creation
-  const winner = await prisma.player.findUnique({ where: { discordId: winnerId } });
-  const player1Data = await prisma.player.findUnique({ where: { discordId: orderedPlayers[0].id } });
-  const player2Data = await prisma.player.findUnique({ where: { discordId: orderedPlayers[1].id } });
+  // Find winner DB id
+  const winnerRecord = winnerId ? playerRecords[winnerId] : null;
 
-  if (player1Data && player2Data) {
-    // Create match record
-    const isP1Winner = orderedPlayers[0].id === winnerId;
-    await prisma.match.create({
+  // Create the Match row (FFA)
+  const match = await prisma.match.create({
+    data: {
+      reportId: reportId || null,
+      winnerId: winnerRecord?.id || null,
+      status: "completed",
+      seasonId: season.id,
+      scheduledAt: new Date(),
+      completedAt: new Date(),
+      result: "ffa",
+      notes: reportId ? `Report ID: ${reportId}` : null,
+    },
+  });
+
+  // Create MatchPlayer rows for every player in placement order
+  for (let i = 0; i < validPlayers.length; i++) {
+    const p = validPlayers[i];
+    const dbPlayer = playerRecords[p.id];
+    if (!dbPlayer) continue;
+    const pick = data.leaderPicks?.[p.id] || {};
+    const ratingAfter = Math.round(p.rating);
+    const ratingBefore = Math.round(p.ratingBefore ?? p.rating);
+    await prisma.matchPlayer.create({
       data: {
-        player1Id: player1Data.id,
-        player2Id: player2Data.id,
-        result: isP1Winner ? "1-0" : "0-1",
-        status: "completed",
-        seasonId: season.id,
-        scheduledAt: new Date(),
-        completedAt: new Date(),
-        player1EloBefore: Math.round(orderedPlayers[0].ratingBefore || orderedPlayers[0].rating),
-        player1EloAfter: Math.round(orderedPlayers[0].rating),
-        player2EloBefore: Math.round(orderedPlayers[1].ratingBefore || orderedPlayers[1].rating),
-        player2EloAfter: Math.round(orderedPlayers[1].rating),
-        notes: reportId ? `Report ID: ${reportId}` : null,
-        player1Civ: data.leaderPicks?.[orderedPlayers[0]?.id]?.leader || null,
-        player2Civ: data.leaderPicks?.[orderedPlayers[1]?.id]?.leader || null,
+        matchId: match.id,
+        playerId: dbPlayer.id,
+        placement: p.placement ?? i + 1,
+        leader: pick.leader || null,
+        civ: pick.civ || null,
+        ratingBefore,
+        ratingAfter,
+        ratingGain: ratingAfter - ratingBefore,
       },
     });
   }
 
-  // If more than 2 players (FFA), record additional matchups for display
-  if (orderedPlayers.length > 2) {
-    // Just record 1st vs last as the primary match, others tracked via notes
-    // Full FFA tracking can be added later
-  }
-
-  // Sync ALL player stats if provided (handles players not in this match)
+  // Sync any extra players from allPlayers (not in this match)
   if (data.allPlayers) {
     for (const [discordId, p] of Object.entries(data.allPlayers)) {
+      if ((p.games ?? 0) === 0) continue;
       const division = getDivision(p.rating);
+      const firstPlaceCount = p.first_place ?? p.firstPlace ?? 0;
       await prisma.player.upsert({
         where: { discordId },
         update: {
@@ -135,7 +160,7 @@ async function handleMatchReport(data) {
           division,
           wins: p.wins,
           losses: p.games - p.wins,
-	  draws: p.first_place ?? p.firstPlace ?? 0,
+          draws: firstPlaceCount,
         },
         create: {
           username: p.name,
@@ -144,7 +169,7 @@ async function handleMatchReport(data) {
           division,
           wins: p.wins,
           losses: p.games - p.wins,
-	  draws: p.first_place ?? p.firstPlace ?? 0,
+          draws: firstPlaceCount,
         },
       });
     }
@@ -153,10 +178,10 @@ async function handleMatchReport(data) {
   return NextResponse.json({
     success: true,
     message: `Match report ${reportId || ""} synced`,
-    playersUpdated: orderedPlayers.length,
+    matchId: match.id,
+    playersRecorded: validPlayers.length,
   });
 }
-
 // ─── FULL SYNC ──────────────────────────────────────────────────────────────
 // Called for daily reconciliation or manual .sync command
 async function handleFullSync(data) {
@@ -170,6 +195,7 @@ async function handleFullSync(data) {
   let updated = 0;
 
   for (const [discordId, p] of Object.entries(allPlayers)) {
+    if ((p.games ?? 0) === 0) continue;
     const division = getDivision(p.rating);
 
     // Find most-played leader for favCiv
@@ -192,7 +218,7 @@ async function handleFullSync(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place ?? p.firstPlace ?? 0,
+        draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv,
       },
       create: {
@@ -202,7 +228,7 @@ async function handleFullSync(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place ?? p.firstPlace ?? 0,
+        draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv,
       },
     });
