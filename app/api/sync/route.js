@@ -73,7 +73,7 @@ async function handleMatchReport(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place || p.firstPlace || 0,
+        draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv: p.favCiv || null,
       },
       create: {
@@ -83,7 +83,7 @@ async function handleMatchReport(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place || p.firstPlace || 0,
+        draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv: p.favCiv || null,
       },
     });
@@ -135,7 +135,7 @@ async function handleMatchReport(data) {
           division,
           wins: p.wins,
           losses: p.games - p.wins,
-	  draws: p.first_place || p.firstPlace || 0,
+	  draws: p.first_place ?? p.firstPlace ?? 0,
         },
         create: {
           username: p.name,
@@ -144,7 +144,7 @@ async function handleMatchReport(data) {
           division,
           wins: p.wins,
           losses: p.games - p.wins,
-	  draws: p.first_place || p.firstPlace || 0,
+	  draws: p.first_place ?? p.firstPlace ?? 0,
         },
       });
     }
@@ -192,7 +192,7 @@ async function handleFullSync(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place || p.firstPlace || 0,
+	draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv,
       },
       create: {
@@ -202,7 +202,7 @@ async function handleFullSync(data) {
         division,
         wins: p.wins,
         losses: p.games - p.wins,
-	draws: p.first_place || p.firstPlace || 0,
+	draws: p.first_place ?? p.firstPlace ?? 0,
         favCiv,
       },
     });

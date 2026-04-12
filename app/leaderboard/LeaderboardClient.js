@@ -23,7 +23,7 @@ export default function LeaderboardClient({ players, divisions, seasons }) {
   }, [players, divFilter]);
 
   const getDivInfo = (name) => divisions.find((d) => d.name === name) || divisions[4];
-  const winRate = (p) => { const t = p.wins + p.losses + p.draws; return t === 0 ? 0 : Math.round((p.wins / t) * 100); };
+  const winRate = (p) => { const t = p.wins + p.losses; return t === 0 ? 0 : Math.round((p.wins / t) * 100); };
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-12">
@@ -59,8 +59,8 @@ export default function LeaderboardClient({ players, divisions, seasons }) {
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              {["Rank", "Player", "Division", "ELO", "W", "L", "D", "Win%", "Streak", "Fav Civ"].map((h) => (
-                <th key={h} className={`px-4 py-3.5 text-left font-condensed text-[11px] font-semibold tracking-[2px] uppercase text-[var(--text-muted)] bg-[var(--bg-secondary)] border-b border-[var(--border)] ${["W", "L", "D", "Win%"].includes(h) ? "text-center" : ""}`}>
+              {["Rank", "Player", "Division", "ELO", "W", "L", "1st", "Win%", "Streak", "Fav Civ"].map((h) => (
+                <th key={h} className={`px-4 py-3.5 text-left font-condensed text-[11px] font-semibold tracking-[2px] uppercase text-[var(--text-muted)] bg-[var(--bg-secondary)] border-b border-[var(--border)] ${["W", "L", "1st", "Win%"].includes(h) ? "text-center" : ""}`}>
                   {h}
                 </th>
               ))}
