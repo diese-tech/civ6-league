@@ -26,6 +26,8 @@ export async function POST(request) {
       return await handleMatchReport(data);
     } else if (type === "full_sync") {
       return await handleFullSync(data);
+    } else if (type === "season_reset") {
+      return await handleSeasonReset();
     } else {
       return NextResponse.json({ error: "Unknown sync type" }, { status: 400 });
     }
@@ -212,6 +214,26 @@ async function handleFullSync(data) {
     message: "Full sync complete",
     playersUpdated: updated,
   });
+}
+
+// ─── SEASON RESET ───────────────────────────────────────────────────────────
+async function handleSeasonReset() {
+  // Delete all matches
+  await prisma.match.deleteMany({});
+
+  // Reset all player stats
+  await prisma.player.updateMany({
+    data: {
+      eloRating: 1500,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      division: "Emperor",
+      favCiv: null,
+    },
+  });
+
+  return NextResponse.json({ success: true, message: "Season reset complete" });
 }
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
