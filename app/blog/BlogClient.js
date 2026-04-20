@@ -65,6 +65,9 @@ export default function BlogClient({ posts }) {
                   </span>
                 )}
                 <span className="font-mono text-[11px] text-[var(--text-muted)]">{fmt(post.createdAt)}</span>
+                {post.author && (
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">· {post.author}</span>
+                )}
               </div>
               <h2 className="font-display text-xl font-bold mb-2 group-hover:text-gold">{post.title}</h2>
               <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line line-clamp-3">

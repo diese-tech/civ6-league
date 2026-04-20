@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 // POST - create a blog post from the website editor
 export async function POST(request) {
   try {
-    const { title, content, isPinned, password } = await request.json();
+    const { title, content, isPinned, password, author } = await request.json();
 
     // Simple password auth for blog posts
     // Set BLOG_PASSWORD in Vercel env vars
@@ -22,6 +22,7 @@ export async function POST(request) {
       data: {
         title: title.trim(),
         content: content.trim(),
+        author: author?.trim() || "Admin",
         isPinned: isPinned || false,
       },
     });

@@ -24,6 +24,7 @@ export default function LeaderboardClient({ players, divisions, seasons }) {
 
   const getDivInfo = (name) => divisions.find((d) => d.name === name) || divisions[4];
   const winRate = (p) => { const t = p.wins + p.losses; return t === 0 ? 0 : Math.round((p.wins / t) * 100); };
+  const games = (p) => p.wins + p.losses;
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-12">

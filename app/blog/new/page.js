@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function NewPostPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", content: "", isPinned: false });
+  const [form, setForm] = useState({ title: "", content: "", isPinned: false, author: "" });
   const [status, setStatus] = useState(null);
   const [password, setPassword] = useState("");
 
@@ -58,6 +58,11 @@ export default function NewPostPage() {
             {status.msg}
           </div>
         )}
+
+        <div className="mb-5">
+          <label className={labelCls}>Author</label>
+          <input className={inputCls} placeholder="Your name" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
+        </div>
 
         <div className="mb-5">
           <label className={labelCls}>Title</label>

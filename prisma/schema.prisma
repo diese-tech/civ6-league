@@ -118,6 +118,7 @@ model Announcement {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
+  author    String?
   isPinned  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
