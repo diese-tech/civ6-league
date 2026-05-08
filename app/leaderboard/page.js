@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { DIVISIONS } from "@/lib/constants";
 import LeaderboardClient from "./LeaderboardClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 export const metadata = { title: "Rankings — Civ VI League" };
 

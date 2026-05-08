@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { DIVISIONS } from "@/lib/constants";
 import LeagueClient from "./LeagueClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 export const metadata = { title: "League Structure — Civ VI League" };
 

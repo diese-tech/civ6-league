@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import RulesClient from "./RulesClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 export const metadata = { title: "Rules — Strategy Inc" };
 

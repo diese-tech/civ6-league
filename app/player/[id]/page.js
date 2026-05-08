@@ -4,6 +4,7 @@ import { getDivisionInfo } from "@/lib/constants";
 import { notFound } from "next/navigation";
 import PlayerProfile from "./PlayerProfile";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export async function generateMetadata({ params }) {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export async function generateMetadata({ params }) {

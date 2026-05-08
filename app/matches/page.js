@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import MatchesClient from "./MatchesClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 export const metadata = { title: "Matches — Civ VI League" };
 

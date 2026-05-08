@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import TierListClient from "./TierListClient";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 export const metadata = { title: "Leader Tier List — Strategy Inc" };
 

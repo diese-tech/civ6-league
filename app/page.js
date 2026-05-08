@@ -4,6 +4,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getDivisionInfo, DIVISIONS } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
 // Revalidate every 60 seconds so data stays fresh
 export const revalidate = 60;
 

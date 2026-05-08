@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import BlogClient from "./BlogClient";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 export const metadata = { title: "Blog — Strategy Inc" };
 
