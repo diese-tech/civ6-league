@@ -1,7 +1,7 @@
 # Civ VI League — Competitive Civilization VI Platform
 
 A full-stack competitive league website for Civilization VI built with
-Next.js 14, Prisma ORM, SQLite/PostgreSQL, NextAuth, and Tailwind CSS.
+Next.js 14, Prisma 6.19.3, Neon PostgreSQL, NextAuth, and Tailwind CSS.
 
 ---
 
@@ -25,7 +25,7 @@ npm install
 # Generate Prisma client
 npx prisma generate
 
-# Create database + tables
+# Create database + tables. Do not point DATABASE_URL at production unless intentional.
 npx prisma db push
 
 # Seed with sample data (16 players, 10 matches, 4 announcements)
@@ -43,7 +43,7 @@ Open **http://localhost:3000** — your league is live!
 ### One-Line Setup (alternative)
 
 ```bash
-npm run setup    # install + generate + push + seed
+npm run setup    # install + generate + push + seed; local/dev only
 npm run dev
 ```
 
@@ -160,15 +160,9 @@ Sign up at **https://neon.tech** (free tier: 500MB).
 
 Create a database, copy the connection string.
 
-#### 2. Update Prisma Schema
+#### 2. Confirm Prisma Schema
 
-In `prisma/schema.prisma`, change:
-```prisma
-datasource db {
-  provider = "postgresql"       // ← Change from "sqlite"
-  url      = env("DATABASE_URL")
-}
-```
+`prisma/schema.prisma` already uses PostgreSQL. Do not change schema behavior during deploy unless a migration is intentional.
 
 #### 3. Push to GitHub
 
@@ -186,7 +180,7 @@ git push -u origin main
 2. Import your GitHub repo
 3. Add environment variables:
    ```
-   DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+   DATABASE_URL=postgresql://user:pass@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require
    NEXTAUTH_SECRET=<generate: openssl rand -base64 32>
    NEXTAUTH_URL=https://your-app.vercel.app
    ```
@@ -195,7 +189,8 @@ git push -u origin main
 #### 5. Initialize Production Database
 
 ```bash
-# From your local machine, with production DATABASE_URL:
+# From your local machine, with production DATABASE_URL.
+# These commands mutate production data/schema; run only when intentional.
 DATABASE_URL="your-neon-url" npx prisma db push
 DATABASE_URL="your-neon-url" node prisma/seed.mjs
 ```
@@ -203,17 +198,17 @@ DATABASE_URL="your-neon-url" node prisma/seed.mjs
 Or use Vercel CLI:
 ```bash
 npx vercel env pull .env.production.local
-npx prisma db push
-node prisma/seed.mjs
+npx prisma db push   # mutates the database schema
+node prisma/seed.mjs # writes seed data
 ```
 
-### Option B: Railway (One-Click)
+### Option B: Railway (Legacy)
 
 1. Go to **https://railway.app**
 2. New Project → Deploy from GitHub
 3. Add a PostgreSQL plugin
 4. Set env vars (Railway auto-sets `DATABASE_URL`)
-5. Add build command: `npx prisma generate && npx prisma db push && next build`
+5. Build command should not run `prisma db push`. Use `npm run build` and run schema changes separately only when intentional.
 
 ### Option C: VPS / Self-Hosted
 
@@ -295,8 +290,8 @@ npm run db:studio    # Open Prisma Studio (visual DB editor)
 |---|---|
 | Framework | Next.js 14 (App Router) |
 | Styling | Tailwind CSS + custom CSS variables |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| ORM | Prisma 5 |
+| Database | Neon PostgreSQL |
+| ORM | Prisma 6.19.3 |
 | Auth | NextAuth.js (Discord + Credentials) |
 | Fonts | Cinzel, Barlow, Barlow Condensed, JetBrains Mono |
 | Hosting | Vercel / Railway / any Node host |

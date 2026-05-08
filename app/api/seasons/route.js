@@ -1,6 +1,8 @@
 // app/api/seasons/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET /api/seasons
 export async function GET() {
@@ -13,6 +15,9 @@ export async function GET() {
 
 // POST /api/seasons — Create new season
 export async function POST(request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { name, startDate, endDate, isActive } = await request.json();
 
@@ -39,4 +44,12 @@ export async function POST(request) {
     console.error("Season error:", err);
     return NextResponse.json({ error: "Failed to create season" }, { status: 500 });
   }
+}
+
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+  return null;
 }

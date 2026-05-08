@@ -1,8 +1,13 @@
 // app/api/admin/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function DELETE(request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { type, id } = await request.json();
 
@@ -39,6 +44,9 @@ export async function DELETE(request) {
 }
 
 export async function PATCH(request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { type, id, data } = await request.json();
 
@@ -89,4 +97,12 @@ export async function PATCH(request) {
     console.error("[Admin] Edit error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+  return null;
 }

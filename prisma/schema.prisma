@@ -1,14 +1,14 @@
 // prisma/schema.prisma
 // ─── DATABASE SCHEMA ────────────────────────────────────────────────────────
-// Using SQLite for easy local dev. Switch to PostgreSQL for production
-// by changing the provider and DATABASE_URL in .env
+// Database schema for Neon/PostgreSQL. Do not run db push/reset/seed against
+// production unless you intentionally want to mutate production data.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"          // Change to "postgresql" for production
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

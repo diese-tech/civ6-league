@@ -12,7 +12,7 @@ function EloBar({ rating, max = 2200, color }) {
   );
 }
 
-export default function LeaderboardClient({ players, divisions, seasons }) {
+export default function LeaderboardClient({ players, divisions, seasons, loadError }) {
   const [divFilter, setDivFilter] = useState("all");
   const [seasonFilter, setSeasonFilter] = useState(seasons.find((s) => s.isActive)?.id || seasons[0]?.id);
 
@@ -55,6 +55,12 @@ export default function LeaderboardClient({ players, divisions, seasons }) {
           </select>
         </div>
       </div>
+
+      {loadError && (
+        <div className="mb-4 rounded-lg border border-[var(--red)]/30 bg-[var(--red)]/10 px-4 py-3 text-sm text-[var(--text-secondary)]">
+          {loadError}
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-[var(--border)] fade-in">
         <table className="w-full border-collapse">

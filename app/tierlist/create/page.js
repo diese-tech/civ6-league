@@ -231,7 +231,7 @@ export default function CreateTierListPage() {
             </div>
           ))}
           {filteredUnranked.length === 0 && tiers.unranked.length > 0 && (
-            <div className="text-xs text-[var(--text-muted)] py-2">No matches for "{search}"</div>
+            <div className="text-xs text-[var(--text-muted)] py-2">No matches for &quot;{search}&quot;</div>
           )}
           {tiers.unranked.length === 0 && (
             <div className="text-sm text-[var(--green)] py-4 text-center w-full">All leaders ranked!</div>
